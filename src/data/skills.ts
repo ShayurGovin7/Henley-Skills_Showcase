@@ -37,7 +37,7 @@ export interface Skill {
 export const skills: Skill[] = [
   {
     id: 'datascience',
-    name: 'Data science',
+    name: 'Data Science',
     branch: 'Craft',
     rating: 78,
     headline: 'I turn data into decisions people can trust.',
@@ -53,7 +53,7 @@ export const skills: Skill[] = [
   },
   {
     id: 'dataengineering',
-    name: 'Data engineering',
+    name: 'Data Engineering',
     branch: 'Craft',
     rating: 70,
     headline: 'I like to understand how things work underneath.',

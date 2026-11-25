@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -27,6 +27,15 @@ export function SkillOrbit({ skills, selectedId, onSelect, radius, reducedMotion
   const labels = useRef<(HTMLDivElement | null)[]>([])
   const cores = useRef<(THREE.Mesh | null)[]>([])
   const [hovered, setHovered] = useState<string | null>(null)
+
+  // Create the HTML labels only once the canvas is attached to the page.
+  // Mounting them in the same pass as the canvas makes the label library
+  // rebuild each label mid-render, which can leave one of them empty.
+  const [labelsReady, setLabelsReady] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setLabelsReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   const angles = useMemo(
     () => skills.map((_, i) => (i / skills.length) * Math.PI * 2),
@@ -88,6 +97,7 @@ export function SkillOrbit({ skills, selectedId, onSelect, radius, reducedMotion
                 <sphereGeometry args={[0.035, 16, 16]} />
                 <meshBasicMaterial color={s.locked ? AMBER : CYAN} toneMapped={false} />
               </mesh>
+              {labelsReady && (
               <Html center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
                 <div
                   ref={(el) => { labels.current[i] = el }}
@@ -109,6 +119,7 @@ export function SkillOrbit({ skills, selectedId, onSelect, radius, reducedMotion
                   </button>
                 </div>
               </Html>
+              )}
             </group>
           )
         })}

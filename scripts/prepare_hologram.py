@@ -16,12 +16,25 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from rembg import new_session, remove
 from scipy import ndimage
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "src" / "assets" / "hologram"
 TARGET_WIDTH = 440  # smaller = fewer particles = faster on phones
+
+
+def boost_contrast(cutout: Image.Image) -> Image.Image:
+    """Even out the light on the person so dark hair, beards and suits still glow."""
+    alpha = cutout.split()[-1]
+    rgb = cutout.convert("RGB")
+    person = alpha.point(lambda v: 255 if v > 128 else 0)
+    evened = ImageOps.equalize(rgb, mask=person)
+    rgb = Image.blend(rgb, evened, 0.5)
+    rgb = ImageEnhance.Brightness(rgb).enhance(1.1)
+    out = rgb.convert("RGBA")
+    out.putalpha(alpha)
+    return out
 
 
 def main(photo_path: str) -> None:
@@ -44,6 +57,7 @@ def main(photo_path: str) -> None:
         min(ys.max() + pad, cutout.height),
     )
     cutout = cutout.crop(box)
+    cutout = boost_contrast(cutout)
     alpha = np.array(cutout.split()[-1]).astype(np.float32) / 255.0
 
     # 3. Build a depth map.
